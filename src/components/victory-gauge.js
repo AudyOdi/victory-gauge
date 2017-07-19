@@ -1,10 +1,7 @@
-import React, { PropTypes } from "react";
+import React, {PropTypes} from "react";
 import d3Shape from "d3-shape";
 import d3Scale from "d3-scale";
-import {
-  assign, defaults, isFunction, last,
-  max, min, pick, uniq
-} from "lodash";
+import {assign, defaults, isFunction, last, max, min, pick, uniq} from "lodash";
 import {
   PropTypes as CustomPropTypes,
   Helpers,
@@ -33,7 +30,7 @@ const defaultStyles = {
   },
   needle: {
     stroke: "black",
-    fill: "red",
+    fill: "black",
     strokeWidth: "0.5"
   },
   ticks: {
@@ -47,12 +44,12 @@ export default class VictoryGauge extends React.Component {
   static defaultTransitions = {
     onExit: {
       duration: 500,
-      before: () => ({ y: 0, label: " " })
+      before: () => ({y: 0, label: " "})
     },
     onEnter: {
       duration: 500,
-      before: () => ({ y: 0, label: " " }),
-      after: (datum) => ({ y: datum.y, label: datum.label })
+      before: () => ({y: 0, label: " "}),
+      after: datum => ({y: datum.y, label: datum.label})
     }
   };
 
@@ -74,7 +71,14 @@ export default class VictoryGauge extends React.Component {
     colorScale: PropTypes.oneOfType([
       PropTypes.arrayOf(PropTypes.string),
       PropTypes.oneOf([
-        "greyscale", "qualitative", "heatmap", "warm", "cool", "red", "green", "blue"
+        "greyscale",
+        "qualitative",
+        "heatmap",
+        "warm",
+        "cool",
+        "red",
+        "green",
+        "blue"
       ])
     ]),
     /**
@@ -89,10 +93,7 @@ export default class VictoryGauge extends React.Component {
      *   dataAccessor={(obj) => obj.data}
      *   data={{data: 14, label: "not your data"}}
      */
-    data: PropTypes.oneOfType([
-      PropTypes.object,
-      PropTypes.number
-    ]),
+    data: PropTypes.oneOfType([PropTypes.object, PropTypes.number]),
     /**
      * The dataAccessor prop is a function that takes in the data prop and formats it so that
      * the data can be appropriately rendered by the
@@ -244,10 +245,7 @@ export default class VictoryGauge extends React.Component {
      * an array of display values for each tickValue.
      * @examples d3.time.format("%Y"), (x) => x.toPrecision(2), ["first", "second", "third"]
      */
-    tickFormat: PropTypes.oneOfType([
-      PropTypes.func,
-      CustomPropTypes.homogeneousArray
-    ]),
+    tickFormat: PropTypes.oneOfType([PropTypes.func, CustomPropTypes.homogeneousArray]),
     /**
      * The tickLabelComponent prop takes in an entire label component which will be used
      * to create labels for each tick on the gauge. The new element created from
@@ -281,15 +279,7 @@ export default class VictoryGauge extends React.Component {
     outerRadius: 170,
     padAngle: 0,
     padding: 30,
-    colorScale: [
-      "#75C776",
-      "#39B6C5",
-      "#78CCC4",
-      "#62C3A4",
-      "#64A8D1",
-      "#8C95C8",
-      "#3BAF74"
-    ],
+    colorScale: ["#75C776", "#39B6C5", "#78CCC4", "#62C3A4", "#64A8D1", "#8C95C8", "#3BAF74"],
     segments: [],
     style: {},
     startAngle: -90,
@@ -298,10 +288,10 @@ export default class VictoryGauge extends React.Component {
     width: 400,
     x: "x",
     y: "y",
-    segmentComponent: <Slice/>,
-    tickComponent: <Tick/>,
-    tickLabelComponent: <VictoryLabel/>,
-    needleComponent: <Needle/>
+    segmentComponent: <Slice />,
+    tickComponent: <Tick />,
+    tickLabelComponent: <VictoryLabel />,
+    needleComponent: <Needle />
   };
 
   constructor() {
@@ -319,22 +309,24 @@ export default class VictoryGauge extends React.Component {
   }
 
   getRadius(props, padding) {
-    const maxRadius = Math.min(
-      props.width - padding.left - padding.right,
-      props.height - padding.top - padding.bottom
-    ) / 2;
+    const maxRadius =
+      Math.min(
+        props.width - padding.left - padding.right,
+        props.height - padding.top - padding.bottom
+      ) / 2;
     if (this.props.outerRadius < maxRadius) {
-      padding.left += (maxRadius - this.props.outerRadius);
+      padding.left += maxRadius - this.props.outerRadius;
     }
     return Math.min(this.props.outerRadius, maxRadius);
   }
 
   getSliceFunction(props) {
-    const degreesToRadians = (degrees) => {
+    const degreesToRadians = degrees => {
       return degrees * (Math.PI / 180);
     };
 
-    return d3Shape.pie()
+    return d3Shape
+      .pie()
       .sort(null)
       .startAngle(degreesToRadians(props.startAngle))
       .endAngle(degreesToRadians(props.endAngle))
@@ -342,7 +334,7 @@ export default class VictoryGauge extends React.Component {
   }
 
   getGaugeRange(domain, segmentLocations, props) {
-    const radiansToDegrees = (r) => r * (180 / Math.PI);
+    const radiansToDegrees = r => r * (180 / Math.PI);
     let {startAngle, endAngle} = props;
     if (segmentLocations.length) {
       startAngle = radiansToDegrees(segmentLocations[0].startAngle);
@@ -367,12 +359,12 @@ export default class VictoryGauge extends React.Component {
     } else if (angle <= -270) {
       angle += 360;
     }
-    if (angle > 80 && angle < 110 || angle < -80 && angle > -110) {
+    if ((angle > 80 && angle < 110) || (angle < -80 && angle > -110)) {
       angle = 0;
     }
     if (angle > 90) {
       angle += 180;
-    }else if (angle < -90) {
+    } else if (angle < -90) {
       angle -= 180;
     }
     return angle.toString();
@@ -380,9 +372,7 @@ export default class VictoryGauge extends React.Component {
 
   getDomain(props, tickValues) {
     const {domain, segments} = props;
-    const allValues = tickValues
-      .concat(segments)
-      .concat(domain);
+    const allValues = tickValues.concat(segments).concat(domain);
     let highestValue = max(allValues);
     let lowestValue = min(allValues);
     if (lowestValue === highestValue) {
@@ -392,10 +382,7 @@ export default class VictoryGauge extends React.Component {
         highestValue = 0;
       }
     }
-    return [
-      lowestValue,
-      highestValue
-    ];
+    return [lowestValue, highestValue];
   }
 
   getChartDivisions(values, domain, isTicks) {
@@ -446,7 +433,7 @@ export default class VictoryGauge extends React.Component {
     const {domain, layoutFunction} = calculatedProps;
     const scaledTicks = this.getChartDivisions(tickArray, domain, true);
     const tickLocations = layoutFunction(scaledTicks);
-    const ticks = tickLocations.map((segment) => {
+    const ticks = tickLocations.map(segment => {
       return parseFloat(segment.endAngle);
     });
     const dedupedLocations = uniq(ticks);
@@ -458,25 +445,27 @@ export default class VictoryGauge extends React.Component {
 
   renderData(props, calculatedProps) {
     const {
-      colors, pathFunction, radius,
-      segmentLocations, style,
-      tickFormat, tickValues
+      colors,
+      pathFunction,
+      radius,
+      segmentLocations,
+      style,
+      tickFormat,
+      tickValues
     } = calculatedProps;
     const segmentEvents = this.getEvents(props.events.segments, "segments");
     const labelEvents = this.getEvents(props.events.tickLabels, "tickLabels");
     const tickEvents = this.getEvents(props.events.ticks, "ticks");
     const ticks = this.getTickLocations(calculatedProps, this.getTickArray(props, calculatedProps));
     const tickComponents = ticks.map((tick, index) => {
-      const tickLocation = d3Shape.arc()
-          .startAngle(tick)
-          .endAngle(tick)
-          .outerRadius(radius)
-          .innerRadius(radius)
-          .centroid();
-      const tickStyles = assign({},
-        defaultStyles.ticks,
-        props.style.ticks
-      );
+      const tickLocation = d3Shape
+        .arc()
+        .startAngle(tick)
+        .endAngle(tick)
+        .outerRadius(radius)
+        .innerRadius(radius)
+        .centroid();
+      const tickStyles = assign({}, defaultStyles.ticks, props.style.ticks);
       const tickProps = defaults(
         {},
         this.getEventState(index, "ticks"),
@@ -491,19 +480,21 @@ export default class VictoryGauge extends React.Component {
           angle: (tick * (360 / (Math.PI * 2))).toString()
         }
       );
-      const tickComponent = React.cloneElement(props.tickComponent, assign(
-        {}, tickProps, {events: Helpers.getPartialEvents(tickEvents, index, tickProps)}
-      ));
+      const tickComponent = React.cloneElement(
+        props.tickComponent,
+        assign({}, tickProps, {events: Helpers.getPartialEvents(tickEvents, index, tickProps)})
+      );
       const text = Array.isArray(tickFormat) ? tickFormat[index] : tickValues[index];
       if (text !== null && text !== undefined) {
-        const labelLocation = d3Shape.arc()
+        const labelLocation = d3Shape
+          .arc()
           .startAngle(tick)
           .endAngle(tick)
           .outerRadius(radius + props.padding + tickStyles.y2)
           .innerRadius(radius)
           .centroid();
         const labelStyle = Helpers.evaluateStyle(
-          assign({}, style.tickLabels, defaultStyles.tickLabels, this.props.style.tickLabels),
+          assign({}, style.tickLabels, defaultStyles.tickLabels, this.props.style.tickLabels)
         );
 
         const labelProps = defaults(
@@ -522,9 +513,15 @@ export default class VictoryGauge extends React.Component {
             angle: this.getLabelAngle(tick)
           }
         );
-        const tickLabel = React.cloneElement(props.tickLabelComponent, assign({
-          events: Helpers.getPartialEvents(labelEvents, index, labelProps)
-        }, labelProps));
+        const tickLabel = React.cloneElement(
+          props.tickLabelComponent,
+          assign(
+            {
+              events: Helpers.getPartialEvents(labelEvents, index, labelProps)
+            },
+            labelProps
+          )
+        );
         return (
           <g key={`tick-group${index}`}>
             {tickComponent}
@@ -550,9 +547,12 @@ export default class VictoryGauge extends React.Component {
           datum: {x: segment.data}
         }
       );
-      return React.cloneElement(props.segmentComponent, assign(
-        {}, segmentProps, {events: Helpers.getPartialEvents(segmentEvents, index, segmentProps)}
-      ));
+      return React.cloneElement(
+        props.segmentComponent,
+        assign({}, segmentProps, {
+          events: Helpers.getPartialEvents(segmentEvents, index, segmentProps)
+        })
+      );
     });
     return (
       <g>
@@ -577,44 +577,47 @@ export default class VictoryGauge extends React.Component {
     const {needleComponent, style} = props;
     const {radius} = calculatedProps;
     const needleEvents = this.getEvents(props.events.needle, "needle");
-    const needleProps = defaults(
-      {},
-      this.getEventState(0, "needle"),
-      needleComponent.props,
-      {
-        needleHeight: radius,
-        style: defaults({}, style.needle, defaultStyles.needle),
-        rotation: this.getNeedleRotation(props, calculatedProps)
-      }
-    );
-    return React.cloneElement(needleComponent, assign(
-      {}, needleProps, {events: Helpers.getPartialEvents(needleEvents, 0, needleProps)})
+    const needleProps = defaults({}, this.getEventState(0, "needle"), needleComponent.props, {
+      needleHeight: radius,
+      style: defaults({}, style.needle, defaultStyles.needle),
+      rotation: this.getNeedleRotation(props, calculatedProps)
+    });
+    return React.cloneElement(
+      needleComponent,
+      assign({}, needleProps, {events: Helpers.getPartialEvents(needleEvents, 0, needleProps)})
     );
   }
   getCalculatedProps(props) {
     const style = Helpers.getStyles(props.style, defaultStyles, "auto", "100%");
-    const colors = Array.isArray(props.colorScale) ?
-      props.colorScale : Style.getColorScale(props.colorScale);
+    const colors = Array.isArray(props.colorScale)
+      ? props.colorScale
+      : Style.getColorScale(props.colorScale);
     const padding = Helpers.getPadding(props);
     const radius = this.getRadius(props, padding);
     const tickValues = props.tickValues && props.tickValues.length ? props.tickValues : [];
-    const tickFormat =
-      isFunction(props.tickFormat) ?
-      props.tickValues.map(props.tickFormat) :
-      props.tickFormat;
+    const tickFormat = isFunction(props.tickFormat)
+      ? props.tickValues.map(props.tickFormat)
+      : props.tickFormat;
     const domain = this.getDomain(props, props.tickValues);
     const segmentValues = this.getChartDivisions(props.segments, domain);
     const layoutFunction = this.getSliceFunction(props);
     const segmentLocations = layoutFunction(segmentValues);
     const gaugeRange = this.getGaugeRange(domain, segmentLocations, props);
-    const pathFunction = d3Shape.arc()
-      .outerRadius(radius)
-      .innerRadius(props.innerRadius);
+    const pathFunction = d3Shape.arc().outerRadius(radius).innerRadius(props.innerRadius);
     return {
-      style, colors, padding, radius, domain, segmentValues, layoutFunction,
-      tickFormat, tickValues, pathFunction, segmentLocations, gaugeRange
+      style,
+      colors,
+      padding,
+      radius,
+      domain,
+      segmentValues,
+      layoutFunction,
+      tickFormat,
+      tickValues,
+      pathFunction,
+      segmentLocations,
+      gaugeRange
     };
-
   }
 
   render() {
@@ -626,13 +629,13 @@ export default class VictoryGauge extends React.Component {
       const data = pick(this.props, ["data", "startAngle", "endAngle", "style", "innerRadius"]);
       return (
         <VictoryAnimation {...animate} data={data}>
-          {(props) => <VictoryGauge {...this.props} {...props} animate={null}/>}
+          {props => <VictoryGauge {...this.props} {...props} animate={null} />}
         </VictoryAnimation>
       );
     }
 
     const calculatedProps = this.getCalculatedProps(this.props);
-    const { style, padding, radius } = calculatedProps;
+    const {style, padding, radius} = calculatedProps;
     const xOffset = radius + padding.left;
     const yOffset = radius + padding.top;
     const group = (
@@ -642,14 +645,14 @@ export default class VictoryGauge extends React.Component {
       </g>
     );
 
-    return this.props.standalone ?
-      <svg
-        style={style.parent}
-        viewBox={`0 0 ${this.props.width} ${this.props.height}`}
-        {...this.props.events.parent}
-      >
-        {group}
-      </svg> :
-      group;
+    return this.props.standalone
+      ? <svg
+          style={style.parent}
+          viewBox={`0 0 ${this.props.width} ${this.props.height}`}
+          {...this.props.events.parent}
+        >
+          {group}
+        </svg>
+      : group;
   }
 }
